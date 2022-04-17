@@ -5,7 +5,12 @@ export interface Todo {
 
 const STORAGE_KEY = "vue-todo-ts-v1";
 
-export const storage = {
+interface Storage {
+  save(todoItems: Array<Todo>): void;
+  fetch(): Array<Todo>;
+}
+
+export const storage: Storage = {
   save(todoItems: Array<Todo>) {
     const parsed: string = JSON.stringify(todoItems);
     localStorage.setItem(STORAGE_KEY, parsed);
