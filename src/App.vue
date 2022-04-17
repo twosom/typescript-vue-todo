@@ -13,6 +13,7 @@
           :key="index"
           :index="index"
           :todo-item="todoItem"
+          @toggle="toggleTodoItemComplete"
           @remove="removeTodoItem"
         />
       </ul>
@@ -24,18 +25,7 @@
 import Vue from "vue";
 import TodoInput from "@/components/TodoInput.vue";
 import TodoListItem from "@/components/TodoListItem.vue";
-
-const STORAGE_KEY = "vue-todo-ts-v1";
-const storage = {
-  save(todoItems: Array<any>) {
-    const parsed: string = JSON.stringify(todoItems);
-    localStorage.setItem(STORAGE_KEY, parsed);
-  },
-  fetch(): any[] {
-    const todoItems = localStorage.getItem(STORAGE_KEY) || "[]";
-    return JSON.parse(todoItems);
-  },
-};
+import { storage, Todo } from "@/utils";
 
 export default Vue.extend({
   components: {
@@ -45,19 +35,28 @@ export default Vue.extend({
   data() {
     return {
       todoText: "",
-      todoItems: [] as any[],
+      todoItems: [] as Array<Todo>,
     };
   },
 
   methods: {
+    toggleTodoItemComplete(todoItem: Todo, index: number): void {
+      this.todoItems.splice(index, 1, {
+        ...todoItem,
+        done: !todoItem.done,
+      });
+
+      storage.save(this.todoItems);
+    },
+
     updateTodoText(value: string): void {
       this.todoText = value;
     },
 
     addTodoItem(): void {
       const value = this.todoText;
-      this.todoItems.push(value);
-      storage.save(this.todoItems);
+      this.todoItems.push({ title: value, done: false });
+      storage.save(this.todoItems.sort(this.sortTodo));
       this.initTodoText();
     },
 
@@ -65,18 +64,22 @@ export default Vue.extend({
       this.todoText = "";
     },
 
-    fetchTodoItems(): any[] {
-      return storage.fetch();
+    fetchTodoItems(): void {
+      this.todoItems = storage.fetch().sort(this.sortTodo);
     },
 
-    removeTodoItem(index: number) {
+    sortTodo(a: Todo, b: Todo): number {
+      return a.title.localeCompare(b.title);
+    },
+
+    removeTodoItem(index: number): void {
       console.log("remove", index);
       this.todoItems.splice(index, 1);
-      storage.save(this.todoItems);
+      storage.save(this.todoItems.sort(this.sortTodo));
     },
   },
   created() {
-    this.todoItems = this.fetchTodoItems();
+    this.fetchTodoItems();
   },
 });
 </script>

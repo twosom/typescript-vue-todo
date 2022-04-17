@@ -18,7 +18,11 @@ export default Vue.extend({
   },
   methods: {
     addTodo(): void {
-      this.$emit("add");
+      if (this.item) {
+        this.$emit("add");
+      } else {
+        alert("입력값은 필수입니다.");
+      }
     },
     handleInput(event: InputEvent) {
       const eventTarget = event.target as HTMLInputElement;
